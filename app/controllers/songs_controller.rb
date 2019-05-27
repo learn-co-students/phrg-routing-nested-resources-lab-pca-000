@@ -2,11 +2,22 @@
 
 class SongsController < ApplicationController
   def index
-    @songs = Song.all
+    if params[:artist_id]
+      @artist = Artist.find_by(id: params[:artist_id])
+      artist_check
+    else
+      @songs = Song.all
+    end
   end
 
   def show
-    @song = Song.find(params[:id])
+    if params[:artist_id]
+      @artist = Artist.find_by(id: params[:artist_id])
+      @song = @artist.songs.find_by(id: params[:id])
+      song_check
+    else
+      @song = Song.find(params[:id])
+    end
   end
 
   def new
@@ -44,6 +55,22 @@ class SongsController < ApplicationController
     @song.destroy
     flash[:notice] = "Song deleted."
     redirect_to songs_path
+  end
+
+  def song_check
+    redirect if @song.nil?
+  end
+
+  def artist_check
+    if @artist.nil?
+      redirect_to artists_path, alert: "Artist not found"
+    else
+      @songs = @artist.songs
+    end
+  end
+
+  def redirect
+    redirect_to artist_songs_path(@artist), alert: "Song not found"
   end
 
 private
